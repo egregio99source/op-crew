@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>One Piece Crew Builder - Rarity Edition</title>
+    <title>One Piece Crew Builder - Dual Mode</title>
     <link href="https://fonts.googleapis.com/css2?family=Pirata+One&display=swap" rel="stylesheet">
     
     <style>
@@ -28,10 +28,7 @@
             margin: 0;
             padding: 0;
             text-align: center;
-
-            /* --- INSERISCI QUI DI NUOVO IL TUO SFONDO --- */
             background-image: url("img/sfondoop.png"); 
-            
             background-size: cover;       
             background-position: center;  
             background-attachment: fixed; 
@@ -42,7 +39,7 @@
             font-family: 'Pirata One', cursive;
             color: var(--gold);
             font-size: 4rem;
-            margin-top: 30px;
+            margin-top: 20px;
             margin-bottom: 10px;
             text-shadow: 4px 4px 0px #000, 0 0 20px rgba(255, 165, 0, 0.8); 
             letter-spacing: 3px;
@@ -55,6 +52,40 @@
             min-height: 100vh;
             backdrop-filter: blur(3px);
             padding-bottom: 50px;
+        }
+
+        /* --- SELEZIONE MODALITÀ --- */
+        .mode-selector {
+            padding: 20px 0 10px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            background: rgba(0,0,0,0.6);
+        }
+
+        .mode-btn {
+            font-family: 'Pirata One', cursive;
+            font-size: 1.3rem;
+            padding: 8px 20px;
+            border: 2px solid #555;
+            background: rgba(0,0,0,0.5);
+            color: #aaa;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--gold);
+            color: #fff;
+        }
+
+        .mode-btn.active {
+            background: var(--gold);
+            color: #000;
+            border-color: var(--gold);
+            box-shadow: 0 0 15px var(--gold);
         }
 
         /* --- BARRA LIMITI (BUDGET) --- */
@@ -71,6 +102,12 @@
             top: 0;
             z-index: 100;
             box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+            transition: all 0.3s;
+        }
+        
+        /* Stile speciale per la barra quando in sandbox */
+        .limits-bar.sandbox-mode {
+            border-color: #32cd32;
         }
 
         .limit-item {
@@ -85,6 +122,7 @@
         .limit-item span { font-weight: bold; margin-left: 5px; }
         .limit-full { opacity: 0.5; text-decoration: line-through; }
         .limit-ok { color: var(--gold); border-color: var(--gold); }
+        .limit-over { color: var(--red); border-color: var(--red); font-weight: bold;}
 
         /* --- BARRA AGGIUNTA RUOLI --- */
         .options-bar {
@@ -197,7 +235,6 @@
         }
         .image-slot img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Stelle nella carta equipaggio */
         .card-stars {
             font-size: 10px;
             margin-bottom: 2px;
@@ -275,7 +312,6 @@
             z-index: 5;
         }
         
-        /* Stile quando disabilitato per limite raggiunto */
         .char-select.disabled {
             opacity: 0.3;
             cursor: not-allowed;
@@ -292,7 +328,6 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.5);
         }
 
-        /* Bordi colorati in base alla rarità nella Taverna */
         .rarity-5 img { border-color: var(--rarity-5); box-shadow: 0 0 10px var(--rarity-5); }
         .rarity-4 img { border-color: var(--rarity-4); }
         .rarity-3 img { border-color: var(--rarity-3); }
@@ -315,9 +350,6 @@
             color: var(--gold);
         }
 
-        /* --- STILI PER DISCLAIMER --- */
-        
-        /* Nota piccola sotto al titolo */
         .header-subtitle {
             font-family: 'Segoe UI', sans-serif;
             font-size: 0.9rem;
@@ -329,11 +361,10 @@
             opacity: 0.8;
         }
 
-        /* Footer in fondo */
         .site-footer {
             margin-top: 50px;
             padding: 30px 20px;
-            background: rgba(20, 15, 10, 0.95); /* Quasi nero */
+            background: rgba(20, 15, 10, 0.95);
             border-top: 2px solid var(--brown-btn);
             color: #aaa;
             font-size: 0.8rem;
@@ -372,9 +403,8 @@
             width: 100%;
         }
 
-        /* Stile Bottone Download */
         .save-btn {
-            background: #2e8b57; /* Verde Mare */
+            background: #2e8b57;
             color: #fff;
             font-family: 'Pirata One', cursive;
             font-size: 1.5rem;
@@ -401,18 +431,23 @@
 
     <div class="main-container">
         
-        <div class="limits-bar">
+        <div class="mode-selector">
+            <button class="mode-btn active" id="btn-mode-standard" onclick="setMode('standard')">☠️ Challenge (Limits)</button>
+            <button class="mode-btn" id="btn-mode-sandbox" onclick="setMode('sandbox')">🏝️ Sandbox (No Limits)</button>
+        </div>
+
+        <div class="limits-bar" id="limits-bar">
             <div class="limit-item" id="limit-5" style="color: var(--rarity-5)">
-                Legendaries: <span id="count-5">0</span>/1
+                Legendaries: <span id="count-5">0</span><span id="max-5">/1</span>
             </div>
             <div class="limit-item" id="limit-4" style="color: var(--rarity-4)">
-                Epics: <span id="count-4">0</span>/1
+                Epics: <span id="count-4">0</span><span id="max-4">/2</span>
             </div>
             <div class="limit-item" id="limit-3" style="color: var(--rarity-3)">
-                Rares: <span id="count-3">0</span>/2
+                Rares: <span id="count-3">0</span><span id="max-3">/3</span>
             </div>
             <div class="limit-item" id="limit-2" style="color: var(--rarity-2)">
-                Uncommons: <span id="count-2">0</span>/3
+                Uncommons: <span id="count-2">0</span><span id="max-2">/4</span>
             </div>
             <div class="limit-item" id="limit-1" style="color: #fff">
                 Commons: <span id="count-1">0</span>/∞
@@ -437,15 +472,14 @@
         
         <div style="margin: 20px auto; display: flex; justify-content: center; gap: 15px;">
             <button class="save-btn" onclick="downloadCrew()">
-                📸 WANTED POSTER (Salva Immagine)
+                📸 WANTED POSTER (Save Image)
             </button>
         </div>
 
         <div class="tavern-section">
             <h2>🍺 La Taverna 🍺</h2>
-            <p style="color: #ccc; font-size: 0.9rem;">
-                Regole: 1 Legendary | 1 Epic | 2 Rare | 3 Uncommon | ∞ Common
-            </p>
+            <p style="color: #ccc; font-size: 0.9rem;" id="tavern-rules">
+                </p>
             <input type="text" id="search" class="search-bar" placeholder="Cerca pirata..." onkeyup="filterCharacters()">
             
             <div class="character-grid" id="char-grid">
@@ -454,43 +488,16 @@
     </div>
     <footer class="site-footer">
             <div class="disclaimer-box">
-                
                 <div class="disclaimer-lang">
                     <h4>Avvertenza Legale</h4>
                     <p>
                         Questo sito è un progetto <strong>fan-made senza scopo di lucro</strong>. 
                         Non è in alcun modo affiliato, supportato o sponsorizzato da 
-                        <strong>Eiichiro Oda</strong>, <strong>Shueisha</strong>, <strong>Toei Animation</strong> 
-                        o qualsiasi altro detentore ufficiale dei diritti di <em>One Piece</em>.
-                    </p>
-                    <p>
-                        Tutte le immagini e i nomi dei personaggi utilizzati sono marchi registrati dei rispettivi proprietari. 
-                        L'uso di tali materiali in questo contesto rientra nella dottrina del <strong>"Fair Use"</strong> 
-                        (uso leale) a scopo di parodia, intrattenimento e apprezzamento dei fan, senza alcuna intenzione di violare il copyright.
-                        Nessun guadagno economico viene generato da questo sito.
-                        Please contact 09_gravoso_tapiro@icloud.com for any problems.
+                        <strong>Eiichiro Oda</strong>, <strong>Shueisha</strong>, <strong>Toei Animation</strong>.
                     </p>
                 </div>
-
-                <div class="disclaimer-lang">
-                    <h4>Legal Disclaimer</h4>
-                    <p>
-                        This website is a <strong>non-profit fan-made project</strong>. 
-                        It is not affiliated with, endorsed, sponsored, or specifically approved by 
-                        <strong>Eiichiro Oda</strong>, <strong>Shueisha</strong>, <strong>Toei Animation</strong>, 
-                        or any other official rights holders of <em>One Piece</em>.
-                    </p>
-                    <p>
-                        All character images and names used herein are trademarks of their respective owners. 
-                        The use of such materials falls under the <strong>"Fair Use"</strong> doctrine 
-                        for purposes of parody, entertainment, and fan appreciation, with no intention of copyright infringement.
-                        No financial gain is generated from this website.
-                        Please contact 09_gravoso_tapiro@icloud.com for any problems.
-                    </p>
-                </div>
-
                 <div class="copyright-line">
-                    One Piece © Eiichiro Oda / Shueisha, Toei Animation. All rights reserved to the original owners. Please contact 09_gravoso_tapiro@icloud.com for any problems
+                    One Piece © Eiichiro Oda / Shueisha, Toei Animation. All rights reserved to the original owners.
                 </div>
             </div>
         </footer>
@@ -499,19 +506,20 @@
 
     <script>
         // --- 1. CONFIGURAZIONE RARITÀ E LIMITI ---
+        
+        // Modalità Standard (Aggiornata secondo richiesta)
         const RARITY_LIMITS = {
-            5: 1, // Leggendari
-            4: 1, // Epici
-            3: 2, // Rari
-            2: 3, // Non Comuni
+            5: 1, // Leggendari (default)
+            4: 2, // Epici (Aumentato)
+            3: 3, // Rari (Aumentato)
+            2: 4, // Non Comuni (Aumentato)
             1: 999 // Comuni (infiniti)
         };
 
-        // Conta quanti ne abbiamo selezionati al momento
+        let isSandboxMode = false;
         let currentCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
-        // --- 2. DATABASE PERSONAGGI (CLASSIFICATI) ---
-        // Ho usato link da MyAnimeList per maggiore stabilità
+        // --- 2. DATABASE PERSONAGGI ---
         const characters = [
             // ⭐⭐⭐⭐⭐ LEGGENDARI (Max 1)
             { name: "Gol D. Roger", rarity: 5, img: "img/Gol_D._Roger_primo_piano.webp" },
@@ -532,7 +540,7 @@
             { name: "Figarland Garling", rarity: 5, img: "img/Figarland_Garling_primo_piano.webp" },
             { name: "Kong", rarity: 5, img: "img/Kong_primo_piano.webp" },
 
-            // ⭐⭐⭐⭐ EPICI (Max 1)
+            // ⭐⭐⭐⭐ EPICI (Max 2)
             { name: "Akainu", rarity: 4, img: "img/Sakazuki_primo_piano.webp" },
             { name: "Aokiji", rarity: 4, img: "img/Kuzan_dopo_primo_piano.webp" },
             { name: "Kizaru", rarity: 4, img: "img/Borsalino_primo_piano.webp" },
@@ -555,10 +563,10 @@
             { name: "Crocodile", rarity: 4, img: "img/Crocodile_primo_piano.webp" },
             { name: "Jinbe", rarity: 4, img: "img/Jinbe_primo_piano.webp" },
             { name: "Mihawk", rarity: 4, img: "img/Drakul_Mihawk_primo_piano.webp" },
-            { name: "Scien", rarity: 4, img: "img/Scien_primo_piano.webp" }, //Shirahoshi_primo_piano.webp
+            { name: "Scien", rarity: 4, img: "img/Scien_primo_piano.webp" },
             { name: "Shirahoshi", rarity: 4, img: "img/Shirahoshi_primo_piano.webp" },
 
-            // ⭐⭐⭐ RARI (Max 2)
+            // ⭐⭐⭐ RARI (Max 3)
             { name: "Ace", rarity: 3, img: "img/Portuguese_D._Ace_primo_piano.webp" },
             { name: "Rob Lucci", rarity: 3, img: "img/Rob_Lucci_primo_piano.webp" },
             { name: "Magellan", rarity: 3, img: "img/Magellan_primo_piano.webp" }, 
@@ -571,7 +579,7 @@
             { name: "Smoothie", rarity: 3, img: "img/Charlotte_Smoothie_primo_piano.webp" },
             { name: "Perospero", rarity: 3, img: "img/Charlotte_Perospero_primo_piano.webp" },
             { name: "Jaws", rarity: 3, img: "img/Jaws_primo_piano.webp" },
-            { name: "Vista", rarity: 2, img: "img/Vista_primo_piano.webp" }, //
+            { name: "Vista", rarity: 2, img: "img/Vista_primo_piano.webp" }, 
             { name: "Yasopp", rarity: 3, img: "img/Yasop_primo_piano.webp" },
             { name: "Lucky Roux", rarity: 3, img: "img/Lucky_Lou_primo_piano.webp" },
             { name: "Burgess", rarity: 3, img: "img/Jesus_Burgess_primo_piano.webp" },
@@ -586,7 +594,7 @@
             { name: "X Drake", rarity: 3, img: "img/X_Drake_primo_piano.webp" },
             { name: "Hawkins", rarity: 3, img: "img/Basil_Hawkins_primo_piano.webp" },
             { name: "Apoo", rarity: 3, img: "img/Apoo_primo_piano.webp" },
-            { name: "Bege", rarity: 2, img: "img/Capone_Bege_primo_piano.webp" }, // cambia
+            { name: "Bege", rarity: 2, img: "img/Capone_Bege_primo_piano.webp" },
             { name: "Bonney", rarity: 3, img: "img/Jewelry_Bonney_primo_piano.webp" }, 
             { name: "Urouge", rarity: 3, img: "img/Urouge_primo_piano.webp" }, 
             { name: "Ashura Doji", rarity: 3, img: "img/Ashura_Doji_primo_piano.webp" },
@@ -606,16 +614,15 @@
             { name: "Reiju", rarity: 3, img: "img/Vinsmoke_Reiju_primo_piano.webp" },
             { name: "Yonji", rarity: 3, img: "img/Vinsmoke_Yonji_primo_piano.webp" },
             { name: "Fisher Tiger", rarity: 3, img: "img/Fisher_Tiger_primo_piano.webp" },
-            { name: "Brook", rarity: 3, img: "img/Brook_primo_piano.webp" }, //
-            { name: "Robin", rarity: 3, img: "img/Robin_primo_piano.webp" }, //
-            { name: "Nami", rarity: 3, img: "img/Nami_primo_piano.webp" }, //
-            { name: "Moria", rarity: 3, img: "img/Moria_primo_piano.webp" }, //
+            { name: "Brook", rarity: 3, img: "img/Brook_primo_piano.webp" },
+            { name: "Robin", rarity: 3, img: "img/Robin_primo_piano.webp" },
+            { name: "Nami", rarity: 3, img: "img/Nami_primo_piano.webp" },
+            { name: "Moria", rarity: 3, img: "img/Moria_primo_piano.webp" },
 
-            // ⭐⭐ NON COMUNI (Max 3)
-            
+            // ⭐⭐ NON COMUNI (Max 4)
             { name: "Franky", rarity: 2, img: "img/Franky_dopo_primo_piano.webp" }, 
             { name: "Chopper", rarity: 2, img: "img/Chopper_primo_piano.webp" }, 
-            { name: "Usopp", rarity: 3, img: "img/Usop_primo_piano.webp" }, //
+            { name: "Usopp", rarity: 3, img: "img/Usop_primo_piano.webp" }, 
             { name: "Carrot", rarity: 2, img: "img/Carrot_primo_piano.webp" },
             { name: "Bepo", rarity: 2, img: "img/Bepo_primo_piano.webp" },
             { name: "Jean Bart", rarity: 2, img: "img/Jean_Bart_primo_piano.webp" },
@@ -672,15 +679,15 @@
             { name: "Morgan", rarity: 1, img: "img/Morgan_primo_piano.webp" },
             { name: "Helmeppo", rarity: 1, img: "img/Hermeppo_primo_piano.webp" },
             { name: "Vivi (Bibi)", rarity: 1, img: "img/Bibi_primo_piano.webp" },
-            { name: "Karoo", rarity: 1, img: "img/Carue_primo_piano.webp" }, // Se lo hai
+            { name: "Karoo", rarity: 1, img: "img/Carue_primo_piano.webp" },
             { name: "Igaram", rarity: 1, img: "img/Igaram_primo_piano.webp" },
-            { name: "Wapol", rarity: 1, img: "img/Wapol_primo_piano.webp" }, // Se lo hai
-            { name: "Foxy", rarity: 1, img: "img/Foxy_primo_piano.webp" }, // Se lo hai
-            { name: "Hody Jones", rarity: 1, img: "img/Hody_Jones_primo_piano.webp" }, // Se lo hai
+            { name: "Wapol", rarity: 1, img: "img/Wapol_primo_piano.webp" },
+            { name: "Foxy", rarity: 1, img: "img/Foxy_primo_piano.webp" },
+            { name: "Hody Jones", rarity: 1, img: "img/Hody_Jones_primo_piano.webp" },
             { name: "Ginny", rarity: 1, img: "img/Ginny_primo_piano.webp" },
-            { name: "Rebecca", rarity: 1, img: "img/Rebecca_primo_piano.webp" }, // Se lo hai
-            { name: "Kyros", rarity: 1, img: "img/Kyros_primo_piano.webp" }, // Se lo hai
-            { name: "Viola", rarity: 1, img: "img/Viola_primo_piano.webp" }, // Se lo hai
+            { name: "Rebecca", rarity: 1, img: "img/Rebecca_primo_piano.webp" },
+            { name: "Kyros", rarity: 1, img: "img/Kyros_primo_piano.webp" },
+            { name: "Viola", rarity: 1, img: "img/Viola_primo_piano.webp" },
         ];
 
         // --- 3. GESTIONE STATO ---
@@ -703,13 +710,36 @@
         function init() {
             renderOptionsBar();
             renderCrew();
+            setMode('standard'); // Default
+        }
+
+        // --- CAMBIO MODALITÀ ---
+        function setMode(mode) {
+            const btnStandard = document.getElementById('btn-mode-standard');
+            const btnSandbox = document.getElementById('btn-mode-sandbox');
+            const bar = document.getElementById('limits-bar');
+            const ruleText = document.getElementById('tavern-rules');
+
+            if (mode === 'sandbox') {
+                isSandboxMode = true;
+                btnSandbox.classList.add('active');
+                btnStandard.classList.remove('active');
+                bar.classList.add('sandbox-mode');
+                ruleText.innerText = "Mod Sandbox Activated: No limits!";
+            } else {
+                isSandboxMode = false;
+                btnStandard.classList.add('active');
+                btnSandbox.classList.remove('active');
+                bar.classList.remove('sandbox-mode');
+                ruleText.innerText = `Regole: ${RARITY_LIMITS[5]} Legendary | ${RARITY_LIMITS[4]} Epic | ${RARITY_LIMITS[3]} Rare | ${RARITY_LIMITS[2]} Uncommon | ∞ Common`;
+            }
+
             updateLimitsUI();
-            renderCharacterList(characters);
         }
 
         // --- Aggiorna la barra dei contatori ---
         function updateLimitsUI() {
-            // Conta quante carte per rarità
+            // Conta quanti ne abbiamo selezionati al momento
             currentCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
             
             crewState.forEach(slot => {
@@ -722,19 +752,35 @@
             for (let r = 5; r >= 1; r--) {
                 const el = document.getElementById(`limit-${r}`);
                 const countSpan = document.getElementById(`count-${r}`);
+                const maxSpan = document.getElementById(`max-${r}`);
                 const max = RARITY_LIMITS[r];
                 
-                countSpan.innerText = currentCounts[r];
-
-                // Stile visivo se pieno
-                if (max < 900 && currentCounts[r] >= max) {
-                    el.classList.add('limit-full');
-                    el.classList.remove('limit-ok');
-                } else if (currentCounts[r] > 0) {
-                    el.classList.add('limit-ok');
-                    el.classList.remove('limit-full');
+                // Se siamo in Sandbox, mostriamo infinito
+                if (isSandboxMode) {
+                    countSpan.innerText = "∞"; 
+                    if(maxSpan) maxSpan.style.display = 'none'; // Nascondi il "/1"
+                    el.classList.remove('limit-full', 'limit-ok', 'limit-over');
+                    el.classList.add('limit-ok'); // Tutto verde
                 } else {
-                    el.classList.remove('limit-full', 'limit-ok');
+                    // Modalità Normale
+                    countSpan.innerText = currentCounts[r];
+                    if(maxSpan) {
+                        maxSpan.style.display = 'inline';
+                        maxSpan.innerText = "/" + (max > 900 ? "∞" : max);
+                    }
+
+                    // Reset classi
+                    el.classList.remove('limit-full', 'limit-ok', 'limit-over');
+
+                    if (max < 900) {
+                        if (currentCounts[r] > max) {
+                            el.classList.add('limit-over'); // Rosso se superato (succede se cambi da sandbox a standard)
+                        } else if (currentCounts[r] === max) {
+                            el.classList.add('limit-full'); // Grigio barrato se pieno
+                        } else if (currentCounts[r] > 0) {
+                            el.classList.add('limit-ok'); // Oro se ne hai qualcuno
+                        }
+                    }
                 }
             }
             
@@ -782,9 +828,6 @@
                     nameHtml = slot.char.name;
                     nameColor = "#8b0000";
                     starsHtml = "⭐".repeat(slot.char.rarity);
-                    
-                    // Colore bordo immagine in base alla rarità
-                    // Lo facciamo inline per semplicità, o aggiungiamo classe
                 }
 
                 card.innerHTML = `
@@ -846,17 +889,15 @@
                 return;
             }
 
-            // CONTROLLO LIMITI
-            const currentCount = currentCounts[char.rarity];
-            const maxLimit = RARITY_LIMITS[char.rarity];
-
-            // Se stiamo sostituendo un personaggio, dobbiamo considerare che "liberiamo" uno slot
-            // Ma per semplicità, controlliamo solo se c'è spazio LIBERO
-            if (currentCount >= maxLimit) {
-                // Controllo extra: se sto cliccando sullo slot che HA GIÀ quel personaggio (o stessa rarità), lo permetto?
-                // Per semplicità: NO. Prima rimuovi con X, poi aggiungi.
-                alert(`Hai raggiunto il limite per questa rarità (${maxLimit})! Rimuovi qualcuno prima.`);
-                return;
+            // CONTROLLO LIMITI (Solo se NON siamo in Sandbox)
+            if (!isSandboxMode) {
+                const currentCount = currentCounts[char.rarity];
+                const maxLimit = RARITY_LIMITS[char.rarity];
+                
+                if (currentCount >= maxLimit) {
+                    alert(`Limite raggiunto per questa rarità (${maxLimit})! Rimuovi qualcuno prima.`);
+                    return;
+                }
             }
 
             const slot = crewState.find(s => s.id === selectedSlotId);
@@ -877,11 +918,15 @@
                 const item = document.createElement('div');
                 item.className = `char-select rarity-${char.rarity}`;
                 
-                // Controlla se disabilitato
-                const isFull = currentCounts[char.rarity] >= RARITY_LIMITS[char.rarity];
+                // Controlla se disabilitato (Solo se NON siamo in Sandbox)
+                let isFull = false;
+                if (!isSandboxMode) {
+                    isFull = currentCounts[char.rarity] >= RARITY_LIMITS[char.rarity];
+                }
+
                 if (isFull) {
                     item.classList.add('disabled');
-                    item.onclick = () => alert("Limite raggiunto per questa categoria!");
+                    item.onclick = () => alert("You reach the limit. You can try the sandbox modality");
                 } else {
                     item.onclick = () => assignCharacter(char);
                 }
@@ -907,38 +952,32 @@
             const crewElement = document.getElementById('crew-container');
             const btn = document.querySelector('.save-btn');
             
-            // 1. Nascondi temporaneamente le "X" rosse e i bordi di selezione per una foto pulita
             const removeBtns = document.querySelectorAll('.remove-btn');
             const activeCards = document.querySelectorAll('.role-card.active');
             
             removeBtns.forEach(b => b.style.display = 'none');
-            activeCards.forEach(c => c.classList.remove('active')); // Rimuovi bordo rosso selezione
+            activeCards.forEach(c => c.classList.remove('active')); 
             
-            // Feedback visivo "Caricamento..."
             const originalText = btn.innerText;
             btn.innerText = "📸 Scatto in corso...";
 
-            // 2. Genera l'immagine
             html2canvas(crewElement, {
-                backgroundColor: null, // Mantiene la trasparenza/sfondo scuro
-                scale: 2, // Alta qualità
-                useCORS: true // Fondamentale per scaricare immagini da cartelle/web
+                backgroundColor: null, 
+                scale: 2, 
+                useCORS: true 
             }).then(canvas => {
-                // 3. Crea il link di download
                 const link = document.createElement('a');
                 link.download = 'la-mia-ciurma-one-piece.png';
                 link.href = canvas.toDataURL("image/png");
                 link.click();
 
-                // 4. Ripristina tutto come prima
                 btn.innerText = originalText;
                 
-                // Ri-mostra le X solo dove c'è un personaggio (logica semplificata: riaggiorna la UI)
                 renderCrew(); 
-                if(selectedSlotId) selectSlot(selectedSlotId); // Rimetti il bordo rosso se c'era
+                if(selectedSlotId) selectSlot(selectedSlotId); 
             }).catch(err => {
                 console.error("Errore salvataggio:", err);
-                alert("Impossibile salvare l'immagine. Assicurati che le immagini siano caricate correttamente.");
+                alert("Impossibile salvare l'immagine.");
                 btn.innerText = originalText;
                 renderCrew();
             });
